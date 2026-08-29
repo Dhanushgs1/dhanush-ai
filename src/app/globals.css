@@ -1,0 +1,262 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   Design tokens.
+
+   Colours are semantic (bg / panel / border / text) so the light theme is a
+   token swap rather than a per-component rewrite. Accents stay constant
+   across themes; only their opacity envelopes change.
+------------------------------------------------------------------- */
+
+@theme {
+  /* dark is the default theme */
+  --color-bg: #04050b;
+  --color-bg-2: #070a15;
+  --color-panel: rgba(255, 255, 255, 0.035);
+  --color-panel-2: rgba(255, 255, 255, 0.06);
+  --color-line: rgba(255, 255, 255, 0.09);
+  --color-line-strong: rgba(255, 255, 255, 0.16);
+  --color-text: #eef2fb;
+  --color-muted: #aeb9d4;
+  --color-faint: #7a86a3;
+
+  /* accents */
+  --color-violet: #8b5cf6;
+  --color-violet-soft: #a78bfa;
+  --color-blue: #4f7dff;
+  --color-cyan: #22d3ee;
+  --color-magenta: #e879f9;
+  --color-emerald: #34d399;
+  --color-amber: #fbbf24;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: var(--font-mono-jet), ui-monospace, SFMono-Regular, Menlo,
+    Consolas, monospace;
+
+  --animate-drift: drift 26s linear infinite;
+  --animate-twinkle: twinkle 6s ease-in-out infinite;
+  --animate-dash: dash 3.2s linear infinite;
+  --animate-scan: scan 4.5s ease-in-out infinite;
+  --animate-orbit: orbit 44s linear infinite;
+  --animate-orbit-rev: orbit-rev 44s linear infinite;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-sweep: sweep 9s ease-in-out infinite;
+  --animate-flow: flow 3.4s linear infinite;
+  --animate-blink: blink 2.4s ease-in-out infinite;
+}
+
+/* Light theme: same structure, inverted surfaces. */
+[data-theme="light"] {
+  --color-bg: #f4f6fc;
+  --color-bg-2: #eaeefb;
+  --color-panel: rgba(255, 255, 255, 0.72);
+  --color-panel-2: rgba(255, 255, 255, 0.92);
+  --color-line: rgba(16, 24, 52, 0.1);
+  --color-line-strong: rgba(16, 24, 52, 0.2);
+  --color-text: #0d1330;
+  --color-muted: #3c4767;
+  --color-faint: #626e8f;
+  --color-violet: #6d3ff0;
+  --color-violet-soft: #7c4dff;
+  --color-blue: #2f5ce0;
+  --color-cyan: #0891b2;
+}
+
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, -62px, 0); }
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.25); }
+}
+@keyframes dash {
+  to { stroke-dashoffset: -240; }
+}
+@keyframes scan {
+  0%, 100% { transform: translateY(-46%); opacity: 0; }
+  12% { opacity: 0.85; }
+  50% { transform: translateY(46%); opacity: 0.85; }
+  88% { opacity: 0; }
+}
+@keyframes orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes orbit-rev {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
+}
+@keyframes sweep {
+  0%, 100% { opacity: 0.28; transform: translateX(-7%); }
+  50% { opacity: 0.6; transform: translateX(7%); }
+}
+@keyframes flow {
+  from { stroke-dashoffset: 44; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 6.5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  html[data-theme="dark"] { color-scheme: dark; }
+  html[data-theme="light"] { color-scheme: light; }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-violet) 38%, transparent);
+    color: var(--color-text);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-violet-soft);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  h1, h2, h3, h4 {
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+
+  p { text-wrap: pretty; }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--color-violet) 30%, transparent);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+}
+
+@layer components {
+  /* Glass panel. Backdrop blur is opt-in via .panel-blur — blurring dozens of
+     panels over an animated background is the single most expensive thing this
+     page could do. */
+  .panel {
+    background: var(--color-panel);
+    border: 1px solid var(--color-line);
+    border-radius: 1rem;
+  }
+
+  .panel-blur {
+    backdrop-filter: blur(14px) saturate(1.2);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  }
+
+  .panel-hover {
+    transition: border-color 0.35s ease, box-shadow 0.35s ease,
+      transform 0.35s ease, background 0.35s ease;
+  }
+  .panel-hover:hover {
+    border-color: color-mix(in oklab, var(--color-violet) 42%, transparent);
+    box-shadow: 0 22px 60px -30px color-mix(in oklab, var(--color-blue) 70%, transparent);
+  }
+
+  .text-gradient {
+    background: linear-gradient(
+      100deg,
+      var(--color-text) 0%,
+      var(--color-violet-soft) 48%,
+      var(--color-cyan) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .rule {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--color-violet) 45%, transparent),
+      color-mix(in oklab, var(--color-cyan) 32%, transparent),
+      transparent
+    );
+  }
+
+  .grid-bg {
+    background-image:
+      linear-gradient(color-mix(in oklab, var(--color-blue) 12%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklab, var(--color-blue) 12%, transparent) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+
+  .mask-fade-b {
+    -webkit-mask-image: linear-gradient(to bottom, #000 42%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 42%, transparent 100%);
+  }
+
+  .glow-violet {
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-violet) 35%, transparent),
+      0 14px 40px -18px color-mix(in oklab, var(--color-violet) 75%, transparent);
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-faint);
+  }
+}
+
+/* The assistant stays dark in both themes - it reads as a console panel,
+   so its own colours are pinned rather than following the theme tokens. */
+.chat-surface {
+  background: linear-gradient(165deg, #0c1128 0%, #080b1a 55%, #05070f 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e9edf8;
+}
+.chat-surface .text-text,
+.chat-surface .text-white\/90 {
+  color: #e9edf8;
+}
+.chat-surface .text-muted {
+  color: #aeb9d4;
+}
+.chat-surface .text-faint,
+.chat-surface .placeholder\:text-faint::placeholder {
+  color: #7c88a6;
+}
+.chat-surface .bg-panel {
+  background: rgba(255, 255, 255, 0.05);
+}
+.chat-surface .bg-panel-2 {
+  background: rgba(255, 255, 255, 0.08);
+}
+.chat-surface .border-line {
+  border-color: rgba(255, 255, 255, 0.09);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
