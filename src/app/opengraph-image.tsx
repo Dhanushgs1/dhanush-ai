@@ -149,7 +149,6 @@ export default async function OpenGraphImage() {
           }}
         >
           {avatarSrc ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={avatarSrc}
               alt=""

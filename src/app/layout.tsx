@@ -20,8 +20,17 @@ const title = "Dhanush G | AI Engineer";
 const description =
   "AI Engineer building intelligent systems with LLMs, RAG, AI agents and modern AI technologies.";
 
+/** Never let a malformed env value break the build. */
+function metadataBase(): URL {
+  try {
+    return new URL(siteUrl);
+  } catch {
+    return new URL("https://dhanush-ai.vercel.app");
+  }
+}
+
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: metadataBase(),
   title: { default: title, template: "%s | Dhanush G" },
   description,
   applicationName: "Dhanush G — AI Engineer",

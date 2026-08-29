@@ -65,12 +65,43 @@ export const heroPills = [
   "AWS",
 ] as const;
 
-export const resumePath = process.env.NEXT_PUBLIC_RESUME_PATH ?? "/resume.pdf";
-export const portraitPath =
-  process.env.NEXT_PUBLIC_PORTRAIT_PATH ?? "/portrait.jpg";
+/**
+ * Env vars set to an empty string are common on hosting dashboards, and `??`
+ * does not catch them - so every value here is trimmed and length-checked.
+ */
+function env(value: string | undefined, fallback: string): string {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : fallback;
+}
 
-export const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://dhanush-portfolio.vercel.app";
+export const resumePath = env(process.env.NEXT_PUBLIC_RESUME_PATH, "/resume.pdf");
+export const portraitPath = env(
+  process.env.NEXT_PUBLIC_PORTRAIT_PATH,
+  "/portrait.jpg",
+);
+
+/**
+ * Absolute site URL for metadata, OpenGraph and the sitemap. Falls back to the
+ * deployment URL Vercel injects, so a missing or blank variable can never
+ * produce an invalid URL at build time.
+ */
+function resolveSiteUrl(): string {
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (explicit) return explicit.replace(/\/+$/, "");
+
+  const deployment =
+    process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL?.trim() ||
+    process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim() ||
+    process.env.VERCEL_URL?.trim();
+
+  if (deployment) {
+    return `https://${deployment.replace(/^https?:\/\//, "").replace(/\/+$/, "")}`;
+  }
+
+  return "https://dhanush-ai.vercel.app";
+}
+
+export const siteUrl = resolveSiteUrl();
 
 export type NavItem = {
   id: string;
