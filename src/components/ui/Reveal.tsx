@@ -8,7 +8,7 @@ type As = "div" | "section" | "li" | "article" | "header" | "ol" | "ul";
 export default function Reveal({
   children,
   delay = 0,
-  y = 20,
+  y = 30,
   className,
   as = "div",
 }: {

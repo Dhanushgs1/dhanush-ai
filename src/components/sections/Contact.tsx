@@ -9,6 +9,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { profile, resumePath } from "@/data/site";
 import { cn } from "@/lib/cn";
+import Reveal from "@/components/ui/Reveal";
 
 type Status = "idle" | "sending" | "sent" | "fallback" | "error";
 
@@ -72,7 +73,7 @@ export default function Contact({
       className="py-16 md:py-24"
     >
       <div className="grid gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-12">
-        <div>
+        <Reveal>
           <p className="eyebrow inline-flex items-center gap-2 rounded-full border border-line bg-panel px-3 py-1">
             <span className="h-1.5 w-1.5 rounded-full bg-violet" />
             Contact
@@ -94,7 +95,7 @@ export default function Contact({
               href={profile.links.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="panel panel-hover inline-flex items-center gap-2.5 rounded-xl px-4 py-3 text-[13.5px]"
+              className="fx-social panel inline-flex items-center gap-2.5 rounded-xl px-4 py-3 text-[13.5px]"
             >
               <Github className="h-4 w-4" />
               GITHUB
@@ -103,14 +104,14 @@ export default function Contact({
               href={profile.links.linkedin}
               target="_blank"
               rel="noopener noreferrer"
-              className="panel panel-hover inline-flex items-center gap-2.5 rounded-xl px-4 py-3 text-[13.5px]"
+              className="fx-social panel inline-flex items-center gap-2.5 rounded-xl px-4 py-3 text-[13.5px]"
             >
               <Linkedin className="h-4 w-4" />
               LINKEDIN
             </a>
             <a
               href={`mailto:${profile.links.email}`}
-              className="panel panel-hover inline-flex items-center gap-2.5 rounded-xl px-4 py-3 text-[13.5px]"
+              className="fx-social panel inline-flex items-center gap-2.5 rounded-xl px-4 py-3 text-[13.5px]"
             >
               <Mail className="h-4 w-4" />
               EMAIL
@@ -131,8 +132,9 @@ export default function Contact({
           <p className="mt-8 font-mono text-[11.5px] tracking-[0.1em] text-faint">
             {profile.role} · {profile.company} · {profile.location}
           </p>
-        </div>
+        </Reveal>
 
+        <Reveal delay={0.08}>
         <form
           onSubmit={onSubmit}
           className="panel panel-blur rounded-2xl p-6 sm:p-8"
@@ -230,6 +232,7 @@ export default function Contact({
             ) : null}
           </div>
         </form>
+        </Reveal>
       </div>
     </section>
   );

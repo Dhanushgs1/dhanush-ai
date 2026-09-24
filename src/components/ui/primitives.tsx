@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import Reveal from "./Reveal";
 
 /* ------------------------------------------------------------------ Panel */
 
@@ -165,17 +166,23 @@ export function SectionHeading({
 }) {
   return (
     <div>
-      <Eyebrow className="mb-4">{eyebrow}</Eyebrow>
-      <h2
-        id={`${id}-heading`}
-        className="max-w-3xl text-[1.9rem] font-semibold leading-[1.12] sm:text-4xl md:text-[2.7rem]"
-      >
-        {title}
-      </h2>
+      <Reveal y={14}>
+        <Eyebrow className="mb-4">{eyebrow}</Eyebrow>
+      </Reveal>
+      <Reveal delay={0.08}>
+        <h2
+          id={`${id}-heading`}
+          className="max-w-3xl text-[1.9rem] font-semibold leading-[1.12] sm:text-4xl md:text-[2.7rem]"
+        >
+          {title}
+        </h2>
+      </Reveal>
       {lead ? (
-        <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted">
-          {lead}
-        </p>
+        <Reveal delay={0.16}>
+          <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted">
+            {lead}
+          </p>
+        </Reveal>
       ) : null}
     </div>
   );

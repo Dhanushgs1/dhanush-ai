@@ -23,6 +23,7 @@ import type { LucideIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { profile, resumePath, type NavIcon, type NavItem } from "@/data/site";
 import { cn } from "@/lib/cn";
+import StatusTicker from "@/components/ui/StatusTicker";
 import ThemeToggle from "./ThemeToggle";
 
 const ICONS: Record<NavIcon, LucideIcon> = {
@@ -36,6 +37,8 @@ const ICONS: Record<NavIcon, LucideIcon> = {
   achievements: Trophy,
   contact: Mail,
 };
+
+const SIDEBAR_STATUS = ["AGENT READY", "PROCESSING…", "VECTOR SEARCH", "LLM ONLINE"] as const;
 
 /** Items that get a slot in the mobile bottom bar. */
 const MOBILE_IDS = ["home", "about", "projects", "skills", "contact"];
@@ -71,22 +74,39 @@ export default function AppShell({
 
   useEffect(() => {
     if (!onHome) return;
-    const targets = items
-      .map((item) => document.getElementById(item.id))
-      .filter((el): el is HTMLElement => Boolean(el));
+    let observer: IntersectionObserver | null = null;
+    let timer = 0;
+    let attempts = 0;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (visible) setActive(visible.target.id);
-      },
-      { rootMargin: "-45% 0px -50% 0px", threshold: [0, 0.2, 0.6] },
-    );
+    // The shell outlives page transitions, so on the way back to the homepage
+    // its sections may not be mounted yet — retry briefly until they are.
+    const connect = () => {
+      const targets = items
+        .map((item) => document.getElementById(item.id))
+        .filter((el): el is HTMLElement => Boolean(el));
 
-    targets.forEach((target) => observer.observe(target));
-    return () => observer.disconnect();
+      if (targets.length === 0 && attempts++ < 30) {
+        timer = window.setTimeout(connect, 100);
+        return;
+      }
+
+      observer = new IntersectionObserver(
+        (entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+          if (visible) setActive(visible.target.id);
+        },
+        { rootMargin: "-45% 0px -50% 0px", threshold: [0, 0.2, 0.6] },
+      );
+      targets.forEach((target) => observer?.observe(target));
+    };
+
+    connect();
+    return () => {
+      window.clearTimeout(timer);
+      observer?.disconnect();
+    };
   }, [items, onHome]);
 
   useEffect(() => {
@@ -119,7 +139,7 @@ export default function AppShell({
         )}
       >
         <div className="mx-auto flex h-16 max-w-[1500px] items-center justify-between gap-4 px-4 sm:px-6">
-          <Link href="/" className="group flex min-w-0 items-center gap-3">
+          <Link href="/" className="intro-fade group flex min-w-0 items-center gap-3">
             {portraitSrc ? (
               <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-violet/40">
                 <Image
@@ -194,7 +214,7 @@ export default function AppShell({
       {/* ------------------------------------------------------ sidebar */}
       <aside
         aria-label="Sections"
-        className="fixed left-0 top-16 z-40 hidden h-[calc(100vh-4rem)] w-[248px] flex-col justify-between overflow-y-auto border-r border-line px-3 py-6 lg:flex"
+        className="intro-slide-left fixed left-0 top-16 z-40 hidden h-[calc(100vh-4rem)] w-[248px] flex-col justify-between overflow-y-auto border-r border-line px-3 py-6 lg:flex"
       >
         <nav>
           <p className="eyebrow px-3 pb-3">Navigation</p>
@@ -208,7 +228,7 @@ export default function AppShell({
                     href={hrefFor(item.id)}
                     aria-current={isActive ? "true" : undefined}
                     className={cn(
-                      "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13.5px] transition",
+                      "nav-link group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13.5px] transition",
                       isActive
                         ? "text-text"
                         : "text-faint hover:bg-panel hover:text-text",
@@ -217,7 +237,7 @@ export default function AppShell({
                     {isActive ? (
                       <motion.span
                         layoutId={reduced ? undefined : "sidebar-active"}
-                        className="absolute inset-0 rounded-xl border border-violet/35 bg-gradient-to-r from-violet/20 to-blue/10 glow-violet"
+                        className="nav-active-bg absolute inset-0 rounded-xl border border-violet/35 glow-violet"
                         transition={{
                           type: "spring",
                           stiffness: 340,
@@ -227,11 +247,11 @@ export default function AppShell({
                     ) : null}
                     <Icon
                       className={cn(
-                        "relative h-4 w-4 shrink-0",
+                        "nav-icon relative h-4 w-4 shrink-0",
                         isActive ? "text-violet-soft" : "text-faint",
                       )}
                     />
-                    <span className="relative">{item.label}</span>
+                    <span className="nav-label relative">{item.label}</span>
                   </Link>
                 </li>
               );
@@ -285,6 +305,13 @@ export default function AppShell({
               <Linkedin className="h-3.5 w-3.5" />
               LinkedIn
             </a>
+          </div>
+          <div className="mt-6 border-t border-line px-3 pt-4">
+            <StatusTicker
+              messages={SIDEBAR_STATUS}
+              interval={4200}
+              startDelay={2500}
+            />
           </div>
         </div>
       </aside>

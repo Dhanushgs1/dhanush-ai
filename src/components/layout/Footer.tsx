@@ -35,7 +35,7 @@ export default function Footer({ items }: { items: NavItem[] }) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="GitHub profile"
-              className="panel panel-hover inline-flex h-10 w-10 items-center justify-center rounded-xl text-muted hover:text-text"
+              className="fx-social panel inline-flex h-10 w-10 items-center justify-center rounded-xl text-muted"
             >
               <Github className="h-4 w-4" />
             </a>
@@ -44,14 +44,14 @@ export default function Footer({ items }: { items: NavItem[] }) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="LinkedIn profile"
-              className="panel panel-hover inline-flex h-10 w-10 items-center justify-center rounded-xl text-muted hover:text-text"
+              className="fx-social panel inline-flex h-10 w-10 items-center justify-center rounded-xl text-muted"
             >
               <Linkedin className="h-4 w-4" />
             </a>
             <a
               href={`mailto:${profile.links.email}`}
               aria-label="Send an email"
-              className="panel panel-hover inline-flex h-10 w-10 items-center justify-center rounded-xl text-muted hover:text-text"
+              className="fx-social panel inline-flex h-10 w-10 items-center justify-center rounded-xl text-muted"
             >
               <Mail className="h-4 w-4" />
             </a>

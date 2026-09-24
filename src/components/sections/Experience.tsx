@@ -1,6 +1,7 @@
 import { Building2, GraduationCap } from "lucide-react";
 import { education, journey, roles } from "@/data/site";
 import Reveal from "@/components/ui/Reveal";
+import { TimelineItem, TimelineTrack } from "@/components/ui/Timeline";
 import { SectionHeading } from "@/components/ui/primitives";
 
 export default function Experience() {
@@ -24,26 +25,16 @@ export default function Experience() {
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-12">
         {/* ------------------------------------------------ role timeline */}
-        <ol className="relative border-l border-line pl-6">
+        <TimelineTrack>
           {roles.map((role, index) => (
-            <Reveal
-              as="li"
+            <TimelineItem
               key={`${role.company}-${role.period}`}
+              current={role.current}
               delay={index * 0.05}
-              className="relative pb-6 last:pb-0"
+              nodeClassName="top-5"
+              className="pb-6 last:pb-0"
             >
-              <span className="absolute -left-[30px] top-5 flex h-3 w-3 items-center justify-center">
-                <span className="h-3 w-3 rounded-full border border-violet/50 bg-bg" />
-                <span
-                  className={`absolute h-1.5 w-1.5 rounded-full ${
-                    role.current
-                      ? "bg-gradient-to-r from-violet to-cyan"
-                      : "bg-faint"
-                  }`}
-                />
-              </span>
-
-              <article className="panel panel-hover relative overflow-hidden rounded-2xl p-5 sm:p-6">
+              <article className="panel panel-hover fx-border relative overflow-hidden rounded-2xl p-5 sm:p-6">
                 {role.current ? (
                   <span className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-violet via-blue to-transparent" />
                 ) : null}
@@ -85,9 +76,9 @@ export default function Experience() {
                   ))}
                 </ul>
               </article>
-            </Reveal>
+            </TimelineItem>
           ))}
-        </ol>
+        </TimelineTrack>
 
         <div className="space-y-8">
           {/* ---------------------------------------------------- education */}
@@ -119,25 +110,22 @@ export default function Experience() {
             <Reveal>
               <p className="eyebrow">AI engineering journey</p>
             </Reveal>
-            <ol className="relative mt-5 border-l border-line pl-6">
+            <TimelineTrack className="mt-5">
               {journey.map((item, index) => (
-                <Reveal
-                  as="li"
+                <TimelineItem
                   key={item.step}
+                  current
                   delay={index * 0.04}
-                  className="relative pb-5 last:pb-0"
+                  nodeClassName="top-1.5"
+                  className="pb-5 last:pb-0"
                 >
-                  <span className="absolute -left-[30px] top-1.5 flex h-3 w-3 items-center justify-center">
-                    <span className="h-3 w-3 rounded-full border border-violet/50 bg-bg" />
-                    <span className="absolute h-1.5 w-1.5 rounded-full bg-gradient-to-r from-violet to-cyan" />
-                  </span>
                   <h3 className="text-[14px] font-medium">{item.step}</h3>
                   <p className="mt-1 text-[12.5px] leading-relaxed text-faint">
                     {item.detail}
                   </p>
-                </Reveal>
+                </TimelineItem>
               ))}
-            </ol>
+            </TimelineTrack>
           </div>
         </div>
       </div>

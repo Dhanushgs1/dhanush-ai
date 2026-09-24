@@ -12,11 +12,11 @@ import {
 } from "lucide-react";
 import { Github } from "@/components/ui/BrandIcons";
 import type { LucideIcon } from "lucide-react";
-import type { MouseEvent } from "react";
-import { useState } from "react";
+import type { Variants } from "framer-motion";
 import { projects, type Project } from "@/data/site";
 import { SectionHeading } from "@/components/ui/primitives";
 import { cn } from "@/lib/cn";
+import { EASE_OUT, useTilt } from "@/lib/motion";
 
 const ICONS: Record<Project["icon"], LucideIcon> = {
   marketplace: ShoppingCart,
@@ -44,50 +44,69 @@ function ProjectCard({
   const reduced = useReducedMotion();
   const Icon = ICONS[project.icon];
   const accent = ACCENTS[project.accent];
-  const [pointer, setPointer] = useState({ x: 50, y: 0 });
+  const tilt = useTilt<HTMLElement>(featured ? 2.5 : 4);
 
-  function onMove(event: MouseEvent<HTMLElement>) {
-    if (reduced) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    setPointer({
-      x: ((event.clientX - rect.left) / rect.width) * 100,
-      y: ((event.clientY - rect.top) / rect.height) * 100,
-    });
-  }
+  const container: Variants = {
+    hidden: reduced ? { opacity: 0 } : { opacity: 0, y: 30 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        delay: reduced ? 0 : (index % 2) * 0.09,
+        ease: EASE_OUT,
+        delayChildren: reduced ? 0 : (index % 2) * 0.09 + 0.12,
+        staggerChildren: reduced ? 0 : 0.06,
+      },
+    },
+  };
+  const item: Variants = {
+    hidden: reduced ? { opacity: 0 } : { opacity: 0, y: 14 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE_OUT } },
+  };
+  const media: Variants = {
+    hidden: reduced ? { opacity: 0 } : { opacity: 0, scale: 0.8 },
+    show: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: EASE_OUT } },
+  };
 
   return (
-    <motion.article
-      onMouseMove={onMove}
-      initial={reduced ? { opacity: 0 } : { opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
+    <motion.div
+      variants={container}
+      initial="hidden"
+      whileInView="show"
       viewport={{ once: true, amount: 0.18 }}
-      transition={{
-        duration: 0.55,
-        delay: reduced ? 0 : (index % 2) * 0.07,
-        ease: [0.22, 1, 0.36, 1],
-      }}
-      className={cn(
-        "panel panel-hover group relative overflow-hidden rounded-2xl p-5 sm:p-7",
-        featured && "lg:col-span-2",
-      )}
+      className={cn(featured && "lg:col-span-2")}
     >
+    <article
+      {...tilt}
+      className="tilt panel panel-hover group relative h-full overflow-hidden rounded-2xl p-5 sm:p-7"
+    >
+      {/* light reflection that follows the pointer */}
       <div
         className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
         style={{
-          background: `radial-gradient(520px circle at ${pointer.x}% ${pointer.y}%, ${accent.glow}, transparent 62%)`,
+          background: `radial-gradient(520px circle at var(--px, 50%) var(--py, 0%), ${accent.glow}, transparent 62%)`,
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        style={{
+          background:
+            "linear-gradient(115deg, transparent 30%, color-mix(in oklab, white 5%, transparent) calc(var(--px, 50%) - 5%), transparent calc(var(--px, 50%) + 15%))",
         }}
       />
 
       <div className="relative">
         <div className="flex items-start justify-between gap-4">
-          <span
+          <motion.span
+            variants={media}
             className={cn(
-              "inline-flex h-11 w-11 items-center justify-center rounded-xl border border-line bg-panel-2",
+              "inline-flex h-11 w-11 items-center justify-center rounded-xl border border-line bg-panel-2 transition-transform duration-500 group-hover:scale-[1.06]",
               accent.text,
             )}
           >
             <Icon className="h-5 w-5" />
-          </span>
+          </motion.span>
 
           <div className="flex items-center gap-2">
             {project.status === "in-progress" ? (
@@ -105,6 +124,7 @@ function ProjectCard({
           </div>
         </div>
 
+        <motion.div variants={item}>
         <p className={cn("mt-5 font-mono text-[10px] tracking-[0.18em]", accent.text)}>
           {project.tag.toUpperCase()}
         </p>
@@ -120,9 +140,10 @@ function ProjectCard({
         <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-muted">
           {project.summary}
         </p>
+        </motion.div>
 
         {/* architecture preview */}
-        <div className="mt-5 flex flex-wrap items-center gap-x-1.5 gap-y-2">
+        <motion.div variants={item} className="mt-5 flex flex-wrap items-center gap-x-1.5 gap-y-2">
           {project.architecture
             .slice(0, featured ? 6 : 4)
             .map((step, stepIndex, all) => (
@@ -135,9 +156,9 @@ function ProjectCard({
                 ) : null}
               </span>
             ))}
-        </div>
+        </motion.div>
 
-        <div className="mt-5 flex flex-wrap gap-1.5">
+        <motion.div variants={item} className="mt-5 flex flex-wrap gap-1.5">
           {project.stack.slice(0, 6).map((tech) => (
             <span
               key={tech}
@@ -151,15 +172,15 @@ function ProjectCard({
               +{project.stack.length - 6}
             </span>
           ) : null}
-        </div>
+        </motion.div>
 
-        <div className="mt-7 flex flex-wrap items-center gap-3">
+        <motion.div variants={item} className="mt-7 flex flex-wrap items-center gap-3">
           <Link
             href={`/projects/${project.slug}`}
             className="inline-flex items-center gap-2 rounded-xl border border-violet/30 bg-violet/10 px-4 py-2.5 text-[12.5px] font-medium transition hover:border-violet/60 hover:bg-violet/20"
           >
             VIEW PROJECT
-            <ArrowUpRight className="h-3.5 w-3.5" />
+            <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
             <span className="sr-only">— {project.title}</span>
           </Link>
           {project.repoUrl ? (
@@ -173,9 +194,10 @@ function ProjectCard({
               GITHUB
             </a>
           ) : null}
-        </div>
+        </motion.div>
       </div>
-    </motion.article>
+    </article>
+    </motion.div>
   );
 }
 

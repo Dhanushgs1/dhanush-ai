@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import {
   profile,
   projects,
@@ -10,9 +11,42 @@ import {
 } from "@/data/site";
 import RadialMap from "@/components/skills/RadialMap";
 import SkillPanel from "@/components/skills/SkillPanel";
+import CountUp from "@/components/ui/CountUp";
 import Reveal from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/primitives";
 import { cn } from "@/lib/cn";
+import { useTilt } from "@/lib/motion";
+
+/** Seeded positions for the section's faint particle field. */
+const PARTICLES = Array.from({ length: 14 }, (_, i) => ({
+  left: (i * 37 + 11) % 100,
+  top: (i * 53 + 7) % 100,
+  duration: 14 + ((i * 7) % 12),
+  delay: -((i * 3) % 13),
+  dx: ((i % 5) - 2) * 6,
+  dy: -8 - ((i * 5) % 18),
+}));
+
+/** Technology card: hover tilt + animated border. */
+function TechCard({ children }: { children: ReactNode }) {
+  const tilt = useTilt<HTMLDivElement>(3);
+  return (
+    <div
+      {...tilt}
+      className="tilt fx-border panel panel-hover group relative h-full overflow-hidden rounded-xl px-4 py-3.5"
+    >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        style={{
+          background:
+            "radial-gradient(220px circle at var(--px, 50%) var(--py, 50%), color-mix(in oklab, var(--color-violet) 14%, transparent), transparent 70%)",
+        }}
+      />
+      <div className="relative">{children}</div>
+    </div>
+  );
+}
 
 const ACCENT_DOT: Record<string, string> = {
   blue: "bg-blue",
@@ -45,8 +79,28 @@ export default function Skills() {
     <section
       id="skills"
       aria-labelledby="skills-heading"
-      className="py-16 md:py-24"
+      className="relative py-16 md:py-24"
     >
+      <div aria-hidden="true" className="rm-hide pointer-events-none absolute inset-0 hidden overflow-hidden sm:block">
+        {PARTICLES.map((p, i) => (
+          <span
+            key={i}
+            className="bg-particle absolute h-[2px] w-[2px] rounded-full bg-violet-soft/50"
+            style={{
+              left: `${p.left}%`,
+              top: `${p.top}%`,
+              ...({
+                "--dur": `${p.duration}s`,
+                "--delay": `${p.delay}s`,
+                "--dx": `${p.dx}px`,
+                "--dy": `${p.dy}px`,
+              } as CSSProperties),
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="relative">
       <SectionHeading
         id="skills"
         eyebrow="Skills & Tech Stack"
@@ -138,9 +192,16 @@ export default function Skills() {
                 </div>
 
                 <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {group.items.map((item) => (
-                    <li key={item.id}>
-                      <div className="panel panel-hover group relative h-full overflow-hidden rounded-xl px-4 py-3.5 transition-transform duration-300 hover:-translate-y-0.5">
+                  {group.items.map((item, itemIndex) => (
+                    <li
+                      key={item.id}
+                      className="fx-bob"
+                      style={{
+                        "--dur": `${6.5 + groupIndex * 0.9}s`,
+                        "--delay": `${-(itemIndex * 0.7 + groupIndex * 0.4)}s`,
+                      } as CSSProperties}
+                    >
+                      <TechCard>
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex min-w-0 items-center gap-2.5">
                             <span
@@ -164,7 +225,7 @@ export default function Skills() {
                         <p className="mt-1.5 text-[12px] leading-relaxed text-faint opacity-80 transition-opacity group-hover:opacity-100">
                           {item.description}
                         </p>
-                      </div>
+                      </TechCard>
                     </li>
                   ))}
                 </ul>
@@ -180,13 +241,14 @@ export default function Skills() {
           {metrics.map((metric) => (
             <div key={metric.label} className="bg-bg/85 px-5 py-5 text-center">
               <dd className="text-gradient text-[22px] font-semibold leading-none">
-                {metric.value}
+                <CountUp value={metric.value} />
               </dd>
               <dt className="eyebrow mt-2 block">{metric.label}</dt>
             </div>
           ))}
         </dl>
       </Reveal>
+      </div>
     </section>
   );
 }

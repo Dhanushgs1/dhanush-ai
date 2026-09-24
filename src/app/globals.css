@@ -34,8 +34,6 @@
   --font-mono: var(--font-mono-jet), ui-monospace, SFMono-Regular, Menlo,
     Consolas, monospace;
 
-  --animate-drift: drift 26s linear infinite;
-  --animate-twinkle: twinkle 6s ease-in-out infinite;
   --animate-dash: dash 3.2s linear infinite;
   --animate-scan: scan 4.5s ease-in-out infinite;
   --animate-orbit: orbit 44s linear infinite;
@@ -63,14 +61,6 @@
   --color-cyan: #0891b2;
 }
 
-@keyframes drift {
-  from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(0, -62px, 0); }
-}
-@keyframes twinkle {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.9; transform: scale(1.25); }
-}
 @keyframes dash {
   to { stroke-dashoffset: -240; }
 }
@@ -205,11 +195,6 @@
     background-size: 64px 64px;
   }
 
-  .mask-fade-b {
-    -webkit-mask-image: linear-gradient(to bottom, #000 42%, transparent 100%);
-    mask-image: linear-gradient(to bottom, #000 42%, transparent 100%);
-  }
-
   .glow-violet {
     box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-violet) 35%, transparent),
       0 14px 40px -18px color-mix(in oklab, var(--color-violet) 75%, transparent);
@@ -250,6 +235,508 @@
 }
 .chat-surface .border-line {
   border-color: rgba(255, 255, 255, 0.09);
+}
+
+/* ==================================================================
+   Motion system.
+
+   Rules: animate transform / opacity (occasionally filter) only, drive
+   pointer effects through CSS variables written once per frame (never React
+   state), and keep hover effects behind (hover: hover) so touch devices
+   don't get stuck states.
+   ================================================================== */
+
+@property --fx-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Pointer position, written by CursorFX on fine pointers only. */
+  --mx: 50vw;
+  --my: 40vh;
+  --mxn: 0;
+  --myn: 0;
+}
+
+@keyframes gradient-pan {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+@keyframes intro-slide-left {
+  from { opacity: 0; transform: translate3d(-28px, 0, 0); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes intro-fade {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes intro-dawn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes badge-glow {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-cyan) 45%, transparent); }
+  100% { box-shadow: 0 0 0 10px transparent; }
+}
+@keyframes ripple {
+  from { transform: translate(-50%, -50%) scale(0); opacity: 0.45; }
+  to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}
+@keyframes stat-pulse {
+  0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+  35% { filter: drop-shadow(0 0 10px color-mix(in oklab, var(--color-violet) 80%, transparent)); }
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.55; }
+  50% { transform: scale(1.035); opacity: 1; }
+}
+@keyframes glow-breathe {
+  0%, 100% { transform: scale(0.92); opacity: 0.7; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+@keyframes intermittent {
+  0%, 52% { opacity: 0; }
+  62%, 86% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes label-float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -5px, 0); }
+}
+@keyframes label-pulse {
+  0%, 78%, 100% {
+    border-color: var(--color-line);
+    box-shadow: 0 0 0 0 transparent;
+  }
+  86% {
+    border-color: color-mix(in oklab, var(--color-cyan) 60%, transparent);
+    box-shadow: 0 0 18px -4px color-mix(in oklab, var(--color-cyan) 70%, transparent);
+  }
+}
+@keyframes grid-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-64px, -64px, 0); }
+}
+@keyframes particle-float {
+  0%, 100% { transform: translate3d(0, 0, 0); opacity: 0.25; }
+  50% { transform: translate3d(var(--dx, 10px), var(--dy, -16px), 0); opacity: 0.85; }
+}
+@keyframes node-pulse {
+  0%, 100% { transform: scale(0.8); opacity: 0.35; }
+  50% { transform: scale(1.15); opacity: 0.9; }
+}
+@keyframes beam {
+  0% { transform: translate3d(-40vw, 0, 0) rotate(-18deg); opacity: 0; }
+  15%, 70% { opacity: 1; }
+  100% { transform: translate3d(140vw, 0, 0) rotate(-18deg); opacity: 0; }
+}
+@keyframes trace {
+  from { stroke-dashoffset: 1400; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes nav-scan {
+  0%, 82% { transform: translate3d(-120%, 0, 0); opacity: 0; }
+  86% { opacity: 1; }
+  100% { transform: translate3d(320%, 0, 0); opacity: 0; }
+}
+@keyframes bob {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -3px, 0); }
+}
+@keyframes border-spin {
+  to { --fx-angle: 360deg; }
+}
+@keyframes caret {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+@keyframes ping-soft {
+  0% { transform: scale(1); opacity: 0.7; }
+  80%, 100% { transform: scale(2.4); opacity: 0; }
+}
+@keyframes node-lit {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-violet) 60%, transparent); }
+  100% { box-shadow: 0 0 0 12px transparent; }
+}
+
+/* ---------------------------------------------------------- intro */
+
+.intro-slide-left { animation: intro-slide-left 0.8s var(--ease-out) 0.2s both; }
+.intro-fade { animation: intro-fade 0.7s var(--ease-out) 0.2s both; }
+.intro-dawn { animation: intro-dawn 1.6s ease-out both; }
+
+/* ------------------------------------------------------- gradients */
+
+.text-gradient-live {
+  background: linear-gradient(
+    100deg,
+    var(--color-violet-soft) 0%,
+    var(--color-cyan) 25%,
+    var(--color-blue) 50%,
+    var(--color-violet-soft) 75%,
+    var(--color-cyan) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-pan 7s linear infinite;
+}
+
+.badge-glow { animation: badge-glow 1.4s ease-out 0.9s 2; }
+
+/* ----------------------------------------------- primary CTA button */
+
+.fx-btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-image: linear-gradient(
+    110deg,
+    var(--color-violet) 0%,
+    var(--color-blue) 50%,
+    var(--color-violet) 100%
+  );
+  background-size: 200% 100%;
+  animation: gradient-pan 9s linear infinite;
+  box-shadow: 0 18px 45px -24px var(--color-violet);
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out),
+    translate 0.35s var(--ease-out);
+}
+.fx-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 70%
+  );
+  transform: translate3d(-120%, 0, 0);
+  transition: transform 0.75s var(--ease-out);
+}
+.fx-btn .fx-arrow { transition: transform 0.3s var(--ease-out); }
+@media (hover: hover) {
+  .fx-btn:hover {
+    transform: translate3d(0, -2px, 0);
+    box-shadow: 0 22px 55px -18px var(--color-violet),
+      0 0 0 1px color-mix(in oklab, var(--color-violet-soft) 45%, transparent);
+  }
+  .fx-btn:hover::after { transform: translate3d(120%, 0, 0); }
+  .fx-btn:hover .fx-arrow { transform: translate3d(5px, 0, 0); }
+}
+
+.fx-ripple {
+  pointer-events: none;
+  position: absolute;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  animation: ripple 0.6s ease-out forwards;
+}
+
+/* --------------------------------------------------- tech badges */
+
+.fx-badge {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.25s var(--ease-out), border-color 0.25s ease,
+    box-shadow 0.25s ease, color 0.25s ease, background-position 0.6s ease;
+  background-image: linear-gradient(
+    110deg,
+    var(--color-panel) 0%,
+    var(--color-panel) 40%,
+    color-mix(in oklab, var(--color-violet) 16%, transparent) 60%,
+    color-mix(in oklab, var(--color-cyan) 12%, transparent) 100%
+  );
+  background-size: 220% 100%;
+  background-position: 0% 50%;
+}
+.fx-badge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 35%,
+    color-mix(in oklab, white 40%, transparent) 50%,
+    transparent 65%
+  );
+  transform: translate3d(-130%, 0, 0);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .fx-badge:hover {
+    transform: translate3d(0, -2px, 0) scale(1.05);
+    border-color: color-mix(in oklab, var(--color-violet) 55%, transparent);
+    box-shadow: 0 10px 24px -14px var(--color-violet),
+      0 0 12px -4px color-mix(in oklab, var(--color-cyan) 45%, transparent);
+    background-position: 100% 50%;
+    color: var(--color-text);
+  }
+  .fx-badge:hover::after {
+    transform: translate3d(130%, 0, 0);
+    transition: transform 0.7s var(--ease-out);
+  }
+}
+
+/* ------------------------------------------------ social buttons */
+
+.fx-social {
+  transition: border-color 0.25s ease, background-color 0.25s ease,
+    box-shadow 0.25s ease, color 0.25s ease, transform 0.25s var(--ease-out),
+    translate 0.35s var(--ease-out);
+}
+.fx-social svg { transition: transform 0.3s var(--ease-out); }
+@media (hover: hover) {
+  .fx-social:hover {
+    border-color: color-mix(in oklab, var(--color-violet) 50%, transparent);
+    background-color: var(--color-panel-2);
+    box-shadow: 0 0 20px -8px color-mix(in oklab, var(--color-violet) 80%, transparent);
+    color: var(--color-text);
+  }
+  .fx-social:hover svg { transform: translate3d(0, -1px, 0) rotate(-10deg) scale(1.08); }
+}
+
+.stat-done { display: inline-block; animation: stat-pulse 1.1s ease-out; }
+
+/* ---------------------------------------------------- AI core */
+
+.core-breathe { animation: breathe 6s ease-in-out infinite; }
+.core-glow { animation: glow-breathe 7s ease-in-out infinite; }
+.core-intermittent { animation: intermittent 11s ease-in-out infinite; }
+.core-label {
+  animation: label-float 5.5s ease-in-out infinite;
+}
+.core-label > span {
+  animation: label-pulse 9s ease-in-out infinite;
+  animation-delay: inherit;
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+.core-label[data-near="true"] > span {
+  color: var(--color-text);
+  background-color: color-mix(in oklab, var(--color-violet) 22%, var(--color-bg));
+}
+.core-node {
+  box-shadow: 0 0 10px 2px color-mix(in oklab, var(--color-cyan) 70%, transparent);
+}
+
+/* ------------------------------------------------ parallax layers */
+
+.parallax-bg,
+.parallax-mid,
+.parallax-fg,
+.parallax-hero,
+.parallax-core,
+.parallax-labels {
+  transition: transform 0.9s var(--ease-out);
+  will-change: transform;
+}
+.parallax-bg { transform: translate3d(calc(var(--mxn) * -6px), calc(var(--myn) * -6px), 0); }
+.parallax-mid { transform: translate3d(calc(var(--mxn) * -14px), calc(var(--myn) * -10px), 0); }
+.parallax-fg { transform: translate3d(calc(var(--mxn) * -24px), calc(var(--myn) * -18px), 0); }
+.parallax-hero { transform: translate3d(calc(var(--mxn) * 4px), calc(var(--myn) * 3px), 0); }
+.parallax-core { transform: translate3d(calc(var(--mxn) * -8px), calc(var(--myn) * -8px), 0); }
+.parallax-labels { transform: translate3d(calc(var(--mxn) * 5px), calc(var(--myn) * 5px), 0); }
+
+.cursor-light {
+  transform: translate3d(calc(var(--mx) - 50%), calc(var(--my) - 50%), 0);
+  transition: transform 1.1s var(--ease-out);
+}
+
+/* ------------------------------------------------- background */
+
+.bg-grid-drift { animation: grid-drift 48s linear infinite; }
+.bg-particle { animation: particle-float var(--dur, 14s) ease-in-out var(--delay, 0s) infinite; }
+.bg-node { animation: node-pulse var(--dur, 6s) ease-in-out var(--delay, 0s) infinite; }
+.bg-beam { animation: beam var(--dur, 22s) linear var(--delay, 0s) infinite; }
+.bg-trace {
+  stroke-dasharray: 60 1340;
+  animation: trace var(--dur, 9s) linear var(--delay, 0s) infinite;
+}
+
+/* ----------------------------------------------------- 3D tilt */
+
+.tilt {
+  transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.6s var(--ease-out), border-color 0.35s ease,
+    box-shadow 0.35s ease, background 0.35s ease;
+}
+.tilt[data-tilting="true"] {
+  transition: transform 0.15s linear, border-color 0.35s ease,
+    box-shadow 0.35s ease, background 0.35s ease;
+}
+
+/* -------------------------------------------- animated border */
+
+.fx-border {
+  position: relative;
+}
+.fx-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--fx-angle),
+    transparent 0deg,
+    transparent 250deg,
+    var(--color-violet-soft) 300deg,
+    var(--color-cyan) 340deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .fx-border:hover::before {
+    opacity: 1;
+    animation: border-spin 2.8s linear infinite;
+  }
+}
+
+.fx-bob { animation: bob var(--dur, 7s) ease-in-out var(--delay, 0s) infinite; }
+
+/* ------------------------------------------------- pipeline */
+
+.pipe-card {
+  transition: transform 0.45s var(--ease-out), border-color 0.45s ease,
+    box-shadow 0.45s ease, background-color 0.45s ease;
+}
+.pipe-card[data-state="active"] {
+  transform: translate3d(0, -4px, 0);
+  border-color: color-mix(in oklab, var(--color-cyan) 60%, transparent);
+  background-color: color-mix(in oklab, var(--color-violet) 12%, var(--color-panel));
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-cyan) 25%, transparent),
+    0 16px 40px -18px color-mix(in oklab, var(--color-cyan) 80%, transparent);
+}
+.pipe-card[data-state="done"] {
+  border-color: color-mix(in oklab, var(--color-violet) 32%, transparent);
+}
+.pipe-port {
+  transition: background-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease;
+}
+.pipe-card[data-state="active"] .pipe-port {
+  background-color: var(--color-cyan);
+  box-shadow: 0 0 12px 2px color-mix(in oklab, var(--color-cyan) 80%, transparent);
+  transform: scale(1.3);
+}
+.pipe-card[data-state="done"] .pipe-port {
+  background-color: var(--color-violet-soft);
+}
+.pipe-packet {
+  box-shadow: 0 0 14px 4px color-mix(in oklab, var(--color-cyan) 75%, transparent),
+    0 0 4px 1px #fff;
+}
+
+/* ---------------------------------------------------- sidebar */
+
+.nav-active-bg {
+  background-image: linear-gradient(
+    100deg,
+    color-mix(in oklab, var(--color-violet) 24%, transparent) 0%,
+    color-mix(in oklab, var(--color-blue) 12%, transparent) 50%,
+    color-mix(in oklab, var(--color-violet) 24%, transparent) 100%
+  );
+  background-size: 200% 100%;
+  animation: gradient-pan 8s linear infinite;
+  overflow: hidden;
+}
+.nav-active-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 35%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--color-cyan) 28%, transparent),
+    transparent
+  );
+  animation: nav-scan 7s ease-in-out 1.5s infinite;
+}
+.nav-link .nav-icon,
+.nav-link .nav-label {
+  transition: transform 0.3s var(--ease-out), color 0.3s ease;
+}
+@media (hover: hover) {
+  .nav-link:hover .nav-icon { transform: translate3d(2px, 0, 0) rotate(-6deg); }
+  .nav-link:hover .nav-label { transform: translate3d(2px, 0, 0); }
+  .nav-link:hover {
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-violet) 18%, transparent);
+  }
+}
+
+/* --------------------------------------------------- assistant */
+
+.typing-caret { animation: caret 1s step-end infinite; }
+.ping-soft { animation: ping-soft 2.2s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
+/* ---------------------------------------------------- timeline */
+
+.tl-node {
+  transition: border-color 0.5s ease, background-color 0.5s ease, opacity 0.5s ease;
+  opacity: 0.45;
+}
+.tl-node[data-lit="true"] {
+  opacity: 1;
+  border-color: color-mix(in oklab, var(--color-cyan) 70%, transparent);
+  animation: node-lit 1.2s ease-out;
+}
+
+/* ---------------------------------------------- custom cursor */
+
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 90;
+  pointer-events: none;
+  border-radius: 999px;
+  will-change: transform;
+}
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: var(--color-cyan);
+  box-shadow: 0 0 10px 2px color-mix(in oklab, var(--color-cyan) 70%, transparent);
+}
+.cursor-ring {
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 1px solid color-mix(in oklab, var(--color-violet-soft) 45%, transparent);
+  background: radial-gradient(circle, color-mix(in oklab, var(--color-violet) 14%, transparent), transparent 70%);
+  transition: width 0.25s var(--ease-out), height 0.25s var(--ease-out),
+    margin 0.25s var(--ease-out), border-color 0.25s ease, opacity 0.3s ease;
+}
+.cursor-ring[data-hover="true"] {
+  width: 52px;
+  height: 52px;
+  margin: -26px 0 0 -26px;
+  border-color: color-mix(in oklab, var(--color-cyan) 60%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rm-hide { display: none !important; }
+  .parallax-bg,
+  .parallax-mid,
+  .parallax-fg,
+  .parallax-hero,
+  .parallax-core,
+  .tilt { transform: none !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
