@@ -1,5 +1,6 @@
 import AppShell from "@/components/layout/AppShell";
 import BackgroundFX from "@/components/layout/BackgroundFX";
+import PageTransition from "@/components/layout/PageTransition";
 import AssistantLauncher from "@/components/hero/AssistantLauncher";
 import Footer from "@/components/layout/Footer";
 import About from "@/components/sections/About";
@@ -28,22 +29,24 @@ export default function HomePage() {
       />
 
       <div className="lg:pl-[248px]">
-        <main
-          id="main"
-          className="mx-auto w-full max-w-[1500px] px-4 pb-28 sm:px-6 lg:pb-10"
-        >
-          <Hero portraitSrc={portraitSrc} />
-          <Pipeline />
-          <About />
-          <Projects />
-          <Experience />
-          <Skills />
-          <Certifications />
-          <Achievements />
-          <Contact resumeAvailable={resumeAvailable} />
-        </main>
+        <PageTransition>
+          <main
+            id="main"
+            className="mx-auto w-full max-w-[1500px] px-4 pb-28 sm:px-6 lg:pb-10"
+          >
+            <Hero portraitSrc={portraitSrc} />
+            <Pipeline />
+            <About />
+            <Projects />
+            <Experience />
+            <Skills />
+            <Certifications />
+            <Achievements />
+            <Contact resumeAvailable={resumeAvailable} />
+          </main>
 
-        <Footer items={items} />
+          <Footer items={items} />
+        </PageTransition>
       </div>
 
       <AssistantLauncher />

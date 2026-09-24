@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { NavigationHistoryProvider } from "@/components/layout/NavigationHistory";
 import { profile, siteUrl } from "@/data/site";
 
 const inter = Inter({
@@ -126,7 +127,7 @@ export default function RootLayout({
         <noscript>
           <style>{`[style*="opacity:0"],[style*="opacity: 0"]{opacity:1!important;transform:none!important}`}</style>
         </noscript>
-        {children}
+        <NavigationHistoryProvider>{children}</NavigationHistoryProvider>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}

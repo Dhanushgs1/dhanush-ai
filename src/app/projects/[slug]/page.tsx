@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  ArrowLeft,
-  ArrowRight,
-  ExternalLink,
-} from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import { Github } from "@/components/ui/BrandIcons";
 import AssistantLauncher from "@/components/hero/AssistantLauncher";
 import AppShell from "@/components/layout/AppShell";
 import BackgroundFX from "@/components/layout/BackgroundFX";
+import PageTransition from "@/components/layout/PageTransition";
 import Footer from "@/components/layout/Footer";
+import BackToProjects from "@/components/projects/BackToProjects";
 import Reveal from "@/components/ui/Reveal";
 import { projects } from "@/data/site";
 import { isResumeAvailable, resolvePortrait } from "@/lib/assets";
@@ -74,18 +72,13 @@ export default async function ProjectPage({
       />
 
       <div className="lg:pl-[248px]">
+        <PageTransition>
         <main
           id="main"
           className="mx-auto w-full max-w-5xl px-4 pb-28 pt-24 sm:px-6 md:pt-32 lg:pb-16"
         >
           <Reveal>
-            <Link
-              href="/#projects"
-              className="inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.12em] text-faint transition hover:text-text"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              ALL PROJECTS
-            </Link>
+            <BackToProjects />
 
             <div className="mt-8 flex flex-wrap items-center gap-2">
               <span className="rounded-lg border border-line bg-panel px-2.5 py-1 font-mono text-[10px] tracking-[0.16em] text-violet-soft">
@@ -283,6 +276,7 @@ export default async function ProjectPage({
         </main>
 
         <Footer items={items} />
+        </PageTransition>
       </div>
 
       <AssistantLauncher />
