@@ -28,7 +28,10 @@ export default function SiteLayout({
         portraitSrc={resolvePortrait()}
       />
 
-      <div className="lg:pl-[248px]">
+      {/* overflow-x: clip (not hidden) crops horizontal overflow — e.g. the
+          bounding boxes of the rotating HUD rings — without creating a scroll
+          container, so vertical scrolling and positioning are unaffected. */}
+      <div className="overflow-x-clip lg:pl-[248px]">
         <PageTransition>
           {children}
           <Footer items={items} />

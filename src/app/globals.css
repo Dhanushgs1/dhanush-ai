@@ -521,6 +521,12 @@
   color: var(--color-text);
   background-color: color-mix(in oklab, var(--color-violet) 22%, var(--color-bg));
 }
+.core-anchor { left: var(--x); }
+/* On phones the side labels would sit half outside the portrait box, right
+   at the screen edge; keep their centres at least 0.625rem inside it. */
+@media (max-width: 639.98px) {
+  .core-anchor { left: clamp(0.625rem, var(--x), calc(100% - 0.625rem)); }
+}
 .core-node {
   box-shadow: 0 0 10px 2px color-mix(in oklab, var(--color-cyan) 70%, transparent);
 }

@@ -285,8 +285,8 @@ export default function PortraitHUD({
             return (
               <span
                 key={label.tag}
-                className="absolute -translate-x-1/2 -translate-y-1/2"
-                style={{ left: `${point.x}%`, top: `${point.y}%` }}
+                className="core-anchor absolute -translate-x-1/2 -translate-y-1/2"
+                style={{ "--x": `${point.x}%`, top: `${point.y}%` } as CSSProperties}
               >
                 <span
                   ref={(node) => {
